@@ -24,13 +24,20 @@ const productSchema = new mongoose.Schema({
   },
 );
 
-// Создание модели для продукта
-module.exports = mongoose.model('Product', productSchema); 
-
 // Определение схемы для заказа
-const orderSchema = new mongoose.Schema({
-  products: [productSchema],
-});
+const orderSchema = new mongoose.Schema(
+  {
+    products: [productSchema],
+    totalPrice: Number,
+    createdAt: { type: Date, default: Date.now }
+  },
+  {
+    versionKey: false,
+  }
+);
+
+// Создание модели для продукта
+module.exports = mongoose.model('Product', productSchema);
 
 // Создание модели для заказа
 module.exports = mongoose.model('Order', orderSchema);
