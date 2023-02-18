@@ -16,7 +16,7 @@ module.exports.createOrder = (req, res) => {
     return acc + item.price * item.quantity;
   }, 0);
 
-  console.log('Получен новый заказ:', { products, totalPrice });
+  // console.log('Получен новый заказ:', { products, totalPrice });
 
   // Сохранение заказа в базу данных
   const order = new Order({ products, totalPrice });
@@ -27,6 +27,23 @@ module.exports.createOrder = (req, res) => {
     .catch((error) => {
       console.error('Ошибка при сохранении заказа в базе данных', error);
     });
+
+  // Шаблон для письма
+  const orderListHtml = products.map(item => `
+    <tr>
+      <td>${item.title}</td>
+      <td>${item.quantity} шт.</td>
+      <td>${item.price} руб.</td>
+      <td>${item.quantity * item.price} руб.</td>
+    </tr>
+  `).join('');
+
+  const totalPriceHtml = `
+    <tr>
+      <td colspan="3"><strong>Итого:</strong></td>
+      <td><strong>${totalPrice} руб.</strong></td>
+    </tr>
+  `;
 
   // Отправка уведомления о заказе на email
   // Создаем объект транспорта для отправки почты через SMTP
@@ -42,10 +59,26 @@ module.exports.createOrder = (req, res) => {
 
   // Опции отправки письма
   const mailOptions = {
-    from: 'Butters-blg@yandex.ru',
+    from: 'EcoFarm <Butters-blg@yandex.ru>',
     to: 'butters.blaga@gmail.com',
     subject: 'Новый заказ на сайте EcoFarm',
-    text: `Новый заказ на сумму ${totalPrice} руб.`,
+    html: `
+    <p>Список товаров в заказе:</p>
+    <table>
+      <thead>
+        <tr>
+          <th>Товар</th>
+          <th>Количество</th>
+          <th>Цена</th>
+          <th>Сумма</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${orderListHtml}
+        ${totalPriceHtml}
+      </tbody>
+    </table>
+  `
   };
 
   // Отправка письма
